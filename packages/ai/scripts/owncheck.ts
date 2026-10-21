@@ -6,7 +6,7 @@ import { deadGroupsFromOwnership } from "../src/nn/policy";
 
 const rows = ["....OXO..","..O..XOX.","...O.XXO.","..XO.XOOO",".XXXXXXXO",".XO.XOOO.","..O.XXO..","..O..XO..","........."];
 const { size, board } = boardFromAscii(rows);
-const proc = spawn("python3", ["/tmp/nn_server.py", "/tmp/model/kata_int8.onnx"], { stdio: ["pipe", "pipe", "inherit"] });
+const proc = spawn("python3", [new URL("./nn_server.py", import.meta.url).pathname, "/tmp/model/kata_int8.onnx"], { stdio: ["pipe", "pipe", "inherit"] });
 const rl = createInterface({ input: proc.stdout });
 for (const toPlay of [1, 2] as const) {
   const state = createFromBoard(size, board, toPlay, 7);

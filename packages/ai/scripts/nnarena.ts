@@ -9,7 +9,7 @@ import { deadGroupsFromOwnership, pickNetMove } from "../src/nn/policy";
 const [model, oppLevel, gamesS, sizeS, tempS] = process.argv.slice(2) as [string, Level, string, string, string | undefined];
 const size = Number(sizeS);
 const temp = tempS ? Number(tempS) : 0;
-const proc = spawn("python3", ["/tmp/nn_server.py", model], { stdio: ["pipe", "pipe", "inherit"] });
+const proc = spawn("python3", [new URL("./nn_server.py", import.meta.url).pathname, model], { stdio: ["pipe", "pipe", "inherit"] });
 const rl = createInterface({ input: proc.stdout });
 const waiting: Array<(v: { p: number[]; v: number[]; o: number[] }) => void> = [];
 rl.on("line", (l) => (waiting.shift() as (v: { p: number[]; v: number[]; o: number[] }) => void)(JSON.parse(l)));

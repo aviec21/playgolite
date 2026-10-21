@@ -47,8 +47,8 @@ export async function computeMove(state: GameState, level: Level): Promise<Choic
   if (level === "master" && (await isNetworkInstalled())) {
     try {
       return { move: await networkMove(state) };
-    } catch {
-      /* fall back to the search below, which plays at Expert strength */
+    } catch (err) {
+      console.warn("Master network failed, using the built-in search instead:", err);
     }
   }
   try {
@@ -63,8 +63,8 @@ export async function computeDead(state: GameState, level?: Level): Promise<numb
   if (level === "master" && (await isNetworkInstalled())) {
     try {
       return await networkDeadGroups(state);
-    } catch {
-      /* fall back to the playout estimate */
+    } catch (err) {
+      console.warn("Master network failed for scoring, using the playout estimate:", err);
     }
   }
   try {
