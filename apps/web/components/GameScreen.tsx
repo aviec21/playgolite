@@ -16,6 +16,8 @@ import {
   type GameState,
   type IllegalReason,
 } from "@playgolite/engine";
+import type { Level } from "@playgolite/ai";
+import { computeDead, computeMove } from "../lib/aiClient";
 import { Board } from "./Board";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -44,7 +46,24 @@ function describeResult(state: GameState): string {
   return `${who} wins by ${fmt(r.margin)}`;
 }
 
-export function GameScreen({ size, resume }: { size: number; resume: boolean }) {
+export interface AiConfig {
+  level: Level;
+  /** Colour played by the person: 1 Black, 2 White. */
+  human: number;
+}
+
+const LEVEL_NAMES: Record<Level, string> = {
+  beginner: "Beginner",
+  easy: "Easy",
+  medium: "Medium",
+  hard: "Hard",
+  expert: "Expert",
+};
+
+export function GameScreen({ size, resume, ai }: { size: number; resume: boolean; ai: AiConfig | null }) {
+  const [aiCfg, setAiCfg] = useState<AiConfig | null>(ai);
+  const aiToken = useRef(0);
+  const scoredFor = useRef(-1);
   const [history, setHistory] = useState<GameState[]>(() => [createGame({ size })]);
   const [pending, setPending] = useState<{ x: number; y: number } | null>(null);
   const [message, setMessage] = useState<{ text: string; warn: boolean } | null>(null);
@@ -71,7 +90,15 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
     try {
       if (resume) {
         const saved = localStorage.getItem(SAVE_KEY);
-        if (saved) setHistory([replaySGF(saved)]);
+        if (saved) {
+          let sgf = saved;
+          if (saved.trimStart().startsWith("{")) {
+            const payload = JSON.parse(saved) as { sgf: string; ai?: AiConfig | null };
+            sgf = payload.sgf;
+            setAiCfg(payload.ai ?? null);
+          }
+          setHistory([replaySGF(sgf)]);
+        }
       } else {
         // Starting a new game replaces whatever was saved before.
         localStorage.removeItem(SAVE_KEY);
@@ -97,12 +124,12 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
       if (state.status === "finished") {
         localStorage.removeItem(SAVE_KEY);
       } else {
-        localStorage.setItem(SAVE_KEY, toSGF(state));
+        localStorage.setItem(SAVE_KEY, JSON.stringify({ sgf: toSGF(state), ai: aiCfg }));
       }
     } catch {
       /* storage may be unavailable */
     }
-  }, [state]);
+  }, [state, aiCfg]);
 
   const push = useCallback((next: GameState) => {
     setHistory((h) => [...h, next]);
@@ -119,8 +146,55 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
     [state, push],
   );
 
+  const aiTurn = aiCfg !== null && state.status === "playing" && state.toPlay !== aiCfg.human;
+
+  // The computer moves when it is its turn. Any change of position cancels a search in flight.
+  useEffect(() => {
+    if (!aiCfg || !loaded.current || state.status !== "playing" || state.toPlay === aiCfg.human) return;
+    const token = ++aiToken.current;
+    const started = Date.now();
+    computeMove(state, aiCfg.level)
+      .then(async (c) => {
+        const wait = Math.max(0, 450 - (Date.now() - started));
+        if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+        if (token !== aiToken.current) return;
+        const r = play(state, c.move);
+        if (r.ok) push(r.state);
+        else {
+          const p = play(state, { kind: "pass" });
+          if (p.ok) push(p.state);
+        }
+      })
+      .catch(() => {
+        /* a failed search leaves the turn with the computer; Undo or Menu still work */
+      });
+    return () => {
+      aiToken.current++;
+    };
+  }, [state, aiCfg, push]);
+
+  // Against the computer, pre-mark the stones it judges dead. The player can still correct them.
+  useEffect(() => {
+    if (!aiCfg || state.status !== "scoring" || scoredFor.current === state.moves.length) return;
+    scoredFor.current = state.moves.length;
+    const snapshot = state;
+    computeDead(snapshot)
+      .then((dead) => {
+        setHistory((h) => {
+          let cur = h[h.length - 1] as GameState;
+          if (cur !== snapshot) return h;
+          for (const p of dead) cur = toggleDead(cur, p % cur.size, Math.floor(p / cur.size));
+          return [...h.slice(0, -1), cur];
+        });
+      })
+      .catch(() => {
+        /* marking by hand still works */
+      });
+  }, [state, aiCfg]);
+
   const onPoint = useCallback(
     (x: number, y: number) => {
+      if (aiTurn) return;
       if (state.status === "scoring") {
         setHistory((h) => [...h.slice(0, -1), toggleDead(h[h.length - 1] as GameState, x, y)]);
         return;
@@ -139,7 +213,7 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
         setMessage({ text: "Tap the stone again or press Confirm to place it.", warn: false });
       }
     },
-    [state, confirmMoves, pending, place],
+    [state, confirmMoves, pending, place, aiTurn],
   );
 
   const doPass = () => {
@@ -159,13 +233,25 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
     } catch {
       /* storage may be unavailable */
     }
+    aiToken.current++;
+    scoredFor.current = -1;
     setHistory([createGame({ size })]);
     setPending(null);
     setMessage(null);
   };
 
   const undo = () => {
-    setHistory((h) => (h.length > 1 ? h.slice(0, -1) : h));
+    aiToken.current++;
+    setHistory((h) => {
+      if (h.length < 2) return h;
+      if (!aiCfg) return h.slice(0, -1);
+      // Take back to the person's own turn: the computer's reply and their last move.
+      let end = h.length - 1;
+      do {
+        end--;
+      } while (end > 0 && (h[end] as GameState).toPlay !== aiCfg.human);
+      return h.slice(0, end + 1);
+    });
     setPending(null);
     setMessage(null);
   };
@@ -205,11 +291,11 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
       <div className="statusbar">
         <div className={`player ${state.toPlay === 1 && state.status === "playing" ? "active" : ""}`}>
           <span className="stone black" />
-          Black <small>{state.captures.black} captured</small>
+          Black{aiCfg ? (aiCfg.human === 1 ? " (you)" : " (computer)") : ""} <small>{state.captures.black} captured</small>
         </div>
         <div className={`player ${state.toPlay === 2 && state.status === "playing" ? "active" : ""}`}>
           <span className="stone white" />
-          White <small>{state.captures.white} captured</small>
+          White{aiCfg ? (aiCfg.human === 2 ? " (you)" : " (computer)") : ""} <small>{state.captures.white} captured</small>
         </div>
       </div>
 
@@ -225,20 +311,22 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
       {state.status === "playing" && (
         <>
           <div className={`message ${message?.warn ? "warn" : ""}`} aria-live="polite">
-            {message?.text ?? (lastWasPass ? `${turnLabel} to play. The opponent passed.` : `${turnLabel} to play`)}
+            {aiTurn
+              ? `Computer (${LEVEL_NAMES[aiCfg?.level ?? "easy"]}) is thinking...`
+              : (message?.text ?? (lastWasPass ? `${turnLabel} to play. The opponent passed.` : `${turnLabel} to play`))}
           </div>
           <div className="row">
             <button
               className="btn primary grow"
-              disabled={!pending}
+              disabled={!pending || aiTurn}
               onClick={() => pending && place(pending.x, pending.y)}
             >
               Confirm
             </button>
-            <button className="btn grow" onClick={doPass}>
+            <button className="btn grow" onClick={doPass} disabled={aiTurn}>
               Pass
             </button>
-            <button className="btn grow" onClick={undo} disabled={history.length < 2}>
+            <button className="btn grow" onClick={undo} disabled={history.length < 2 || (aiCfg !== null && aiCfg.human === 2 && history.length < 3)}>
               Undo
             </button>
           </div>
