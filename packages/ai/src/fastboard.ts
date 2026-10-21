@@ -42,6 +42,20 @@ export class FastBoard {
     return b;
   }
 
+  /**
+   * Fresh visit marker. The marker arrays are Int32, so before the counter could pass
+   * 2^31 (and wrap, which would make old marks look unseen) clear them and start over.
+   */
+  private nextStamp(): number {
+    const sc = this.sc;
+    if (sc.stamp >= 0x3fffffff) {
+      sc.seen.fill(0);
+      sc.libSeen.fill(0);
+      sc.stamp = 0;
+    }
+    return ++sc.stamp;
+  }
+
   neighbors(p: number): number[] {
     return this.nbrs[p] as number[];
   }
@@ -54,7 +68,7 @@ export class FastBoard {
    */
   libsOf(p: number, stopAt = 1 << 30): number {
     const color = this.cells[p] as number;
-    const st = ++this.sc.stamp;
+    const st = this.nextStamp();
     let top = 0;
     let len = 0;
     let libs = 0;
@@ -125,7 +139,7 @@ export class FastBoard {
 
   /** Area score: stones plus empty regions touching only one color. Returns black minus white. */
   areaDiff(): number {
-    const st = ++this.sc.stamp;
+    const st = this.nextStamp();
     let black = 0;
     let white = 0;
     for (let p = 0; p < this.n; p++) {
@@ -164,7 +178,7 @@ export class FastBoard {
   /** Owner of every point under area scoring: 1, 2 or 0 (neutral). */
   owners(): Uint8Array {
     const out = new Uint8Array(this.n);
-    const st = ++this.sc.stamp;
+    const st = this.nextStamp();
     for (let p = 0; p < this.n; p++) {
       const c = this.cells[p] as number;
       if (c !== 0) out[p] = c;

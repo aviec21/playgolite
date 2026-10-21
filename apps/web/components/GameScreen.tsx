@@ -22,6 +22,8 @@ import { Board } from "./Board";
 import { ThemeToggle } from "./ThemeToggle";
 
 export const SAVE_KEY = "playgolite:local-game";
+/** "Undo 5" rewinds this many moves of each side. */
+const REWIND_STEPS = 5;
 const SETTINGS_KEY = "playgolite:settings";
 
 const REASONS: Record<IllegalReason, string> = {
@@ -240,17 +242,21 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
     setMessage(null);
   };
 
-  const undo = () => {
+  /** Take back `steps` turns: one move without a computer, otherwise one of the person's moves plus the reply. */
+  const undo = (steps = 1) => {
     aiToken.current++;
     setHistory((h) => {
-      if (h.length < 2) return h;
-      if (!aiCfg) return h.slice(0, -1);
-      // Take back to the person's own turn: the computer's reply and their last move.
       let end = h.length - 1;
-      do {
-        end--;
-      } while (end > 0 && (h[end] as GameState).toPlay !== aiCfg.human);
-      return h.slice(0, end + 1);
+      for (let i = 0; i < steps && end > 0; i++) {
+        // Two players: a single undo takes back one move, "Undo 5" takes back 5 moves of each side.
+        if (!aiCfg) end = Math.max(0, end - (steps > 1 ? 2 : 1));
+        else {
+          do {
+            end--;
+          } while (end > 0 && (h[end] as GameState).toPlay !== aiCfg.human);
+        }
+      }
+      return end === h.length - 1 ? h : h.slice(0, end + 1);
     });
     setPending(null);
     setMessage(null);
@@ -326,11 +332,19 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
             <button className="btn grow" onClick={doPass} disabled={aiTurn}>
               Pass
             </button>
-            <button className="btn grow" onClick={undo} disabled={history.length < 2 || (aiCfg !== null && aiCfg.human === 2 && history.length < 3)}>
+            <button className="btn grow" onClick={() => undo()} disabled={history.length < 2 || (aiCfg !== null && aiCfg.human === 2 && history.length < 3)}>
               Undo
             </button>
           </div>
           <div className="row">
+            <button
+              className="btn grow"
+              onClick={() => undo(REWIND_STEPS)}
+              disabled={history.length < 3}
+              title="Take back 5 moves of each side"
+            >
+              Undo 5
+            </button>
             <button className="btn danger grow" onClick={doResign}>
               Resign
             </button>
