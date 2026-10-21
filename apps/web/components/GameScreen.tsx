@@ -153,6 +153,17 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
     if (r.ok) push(r.state);
   };
 
+  const restart = () => {
+    try {
+      localStorage.removeItem(SAVE_KEY);
+    } catch {
+      /* storage may be unavailable */
+    }
+    setHistory([createGame({ size })]);
+    setPending(null);
+    setMessage(null);
+  };
+
   const undo = () => {
     setHistory((h) => (h.length > 1 ? h.slice(0, -1) : h));
     setPending(null);
@@ -276,9 +287,9 @@ export function GameScreen({ size, resume }: { size: number; resume: boolean }) 
             </p>
           )}
           <div className="row">
-            <Link href={`/play?size=${state.size}`} className="btn primary grow" style={{ textAlign: "center" }}>
+            <button className="btn primary grow" onClick={restart}>
               Play again
-            </Link>
+            </button>
             <Link href="/" className="btn grow" style={{ textAlign: "center" }}>
               Menu
             </Link>
