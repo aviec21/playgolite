@@ -1,0 +1,16 @@
+Neural network used by the "Master" level of PlayGoLite
+=======================================================
+
+File:      kata-b10c384-int8-v1.onnx
+Source:    KataGo network "kata1-tf2-b10c384-s2941M-d5872M" (kata1 run)
+Author:    David J Wu ("lightvector") and KataGo contributors
+Licence:   KataGo Neural Network License (permissive, MIT-style), see
+           https://katagotraining.org/network_license/
+Changes:   Converted from the original PyTorch checkpoint to ONNX, with the weights
+           stored as 8-bit integers (per-channel) to reduce the download size.
+           Only the policy, value, miscellaneous value and ownership outputs are kept.
+
+The network is provided "as is", without warranty of any kind.
+
+TODO(owner): paste the full text of the licence from the URL above into this file so
+the copyright and permission notice travel with the model, as the licence requires.

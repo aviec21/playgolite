@@ -2,7 +2,7 @@ import { GameScreen } from "../../components/GameScreen";
 
 import type { Level } from "@playgolite/ai";
 
-const LEVEL_IDS = ["beginner", "easy", "medium", "hard", "expert"];
+const LEVEL_IDS = ["beginner", "easy", "medium", "hard", "expert", "master"];
 const VALID = [9, 13, 19];
 
 export default async function PlayPage({

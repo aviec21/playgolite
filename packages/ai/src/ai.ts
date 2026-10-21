@@ -3,7 +3,7 @@ import { FastBoard } from "./fastboard";
 import { search } from "./mcts";
 import { makeRng, playout, type Rng } from "./playout";
 
-export type Level = "beginner" | "easy" | "medium" | "hard" | "expert";
+export type Level = "beginner" | "easy" | "medium" | "hard" | "expert" | "master";
 
 export const LEVELS: ReadonlyArray<{ id: Level; label: string; blurb: string }> = [
   { id: "beginner", label: "Beginner", blurb: "Plays mostly at random" },
@@ -11,6 +11,7 @@ export const LEVELS: ReadonlyArray<{ id: Level; label: string; blurb: string }> 
   { id: "medium", label: "Medium", blurb: "Looks a little ahead" },
   { id: "hard", label: "Hard", blurb: "Thinks for a few seconds" },
   { id: "expert", label: "Expert", blurb: "Uses all the time it can" },
+  { id: "master", label: "Master", blurb: "Neural network. One-time download" },
 ];
 
 /** Search budgets for the stronger levels. The time limit makes strength depend on the device. */
@@ -131,7 +132,8 @@ export function chooseMove(state: GameState, level: Level, opts: ChooseOptions =
   if (level === "beginner") return { move: beginnerMove(state, fb, rng) };
   if (level === "easy") return { move: easyMove(state, fb, rng) };
 
-  const budget = BUDGET[level];
+  // Master needs the downloaded network; without it the search plays at Expert strength.
+  const budget = BUDGET[level === "master" ? "expert" : level];
   const scale = opts.budgetScale ?? 1;
   const result = search(fb, state.toPlay, opponentPassed ? 1 : 0, {
     playouts: Math.max(20, Math.round(budget.playouts * scale)),

@@ -6,15 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prebuild": "node scripts/copy-ort.mjs",
+    "predev": "node scripts/copy-ort.mjs"
   },
   "dependencies": {
+    "@playgolite/ai": "*",
     "@playgolite/engine": "*",
-    "next": "^15.0.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
     "@playgolite/learn": "*",
-    "@playgolite/ai": "*"
+    "next": "^15.0.0",
+    "onnxruntime-web": "^1.30.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

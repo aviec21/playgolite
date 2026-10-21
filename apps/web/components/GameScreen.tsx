@@ -61,6 +61,7 @@ const LEVEL_NAMES: Record<Level, string> = {
   medium: "Medium",
   hard: "Hard",
   expert: "Expert",
+  master: "Master",
 };
 
 export function GameScreen({ size, resume, ai }: { size: number; resume: boolean; ai: AiConfig | null }) {
@@ -180,7 +181,7 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
     if (!aiCfg || state.status !== "scoring" || scoredFor.current === state.moves.length) return;
     scoredFor.current = state.moves.length;
     const snapshot = state;
-    computeDead(snapshot)
+    computeDead(snapshot, aiCfg.level)
       .then((dead) => {
         setHistory((h) => {
           let cur = h[h.length - 1] as GameState;

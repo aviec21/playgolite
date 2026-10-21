@@ -8,3 +8,6 @@ dist
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# copied at build time
+apps/web/public/ort/

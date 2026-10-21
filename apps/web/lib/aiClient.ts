@@ -1,4 +1,5 @@
 import type { Choice, Level } from "@playgolite/ai";
+import { isNetworkInstalled, networkDeadGroups, networkMove } from "./nnClient";
 import type { GameState } from "@playgolite/engine";
 
 let worker: Worker | null = null;
@@ -43,6 +44,13 @@ function call<T>(msg: Record<string, unknown>): Promise<T> {
 }
 
 export async function computeMove(state: GameState, level: Level): Promise<Choice> {
+  if (level === "master" && (await isNetworkInstalled())) {
+    try {
+      return { move: await networkMove(state) };
+    } catch {
+      /* fall back to the search below, which plays at Expert strength */
+    }
+  }
   try {
     return await call<Choice>({ kind: "move", state, level });
   } catch {
@@ -51,7 +59,14 @@ export async function computeMove(state: GameState, level: Level): Promise<Choic
   }
 }
 
-export async function computeDead(state: GameState): Promise<number[]> {
+export async function computeDead(state: GameState, level?: Level): Promise<number[]> {
+  if (level === "master" && (await isNetworkInstalled())) {
+    try {
+      return await networkDeadGroups(state);
+    } catch {
+      /* fall back to the playout estimate */
+    }
+  }
   try {
     return await call<number[]>({ kind: "dead", state });
   } catch {
