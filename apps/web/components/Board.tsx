@@ -1,7 +1,7 @@
 "use client";
 
 import type { Cell, GameState } from "@playgolite/engine";
-import { COLUMN_LETTERS, starPoints } from "@/lib/geometry";
+import { COLUMN_LETTERS, starPoints } from "../lib/geometry";
 
 const CELL = 40;
 const MARGIN = 30;

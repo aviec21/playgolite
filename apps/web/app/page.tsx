@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 const SIZES = [
   { size: 9, note: "Quick, about 10 min" },
