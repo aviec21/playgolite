@@ -12,6 +12,7 @@ import {
   refutation,
   type Puzzle,
 } from "@playgolite/learn";
+import { BackButton } from "./BackButton";
 import { Board } from "./Board";
 import { ThemeToggle } from "./ThemeToggle";
 import { PUZZLES_KEY, useProgress } from "../lib/progress";
@@ -101,10 +102,13 @@ export function PuzzlePlayer({ puzzle, nextId }: { puzzle: Puzzle; nextId: strin
   return (
     <main className="shell">
       <div className="topbar">
-        <Link href="/puzzles" className="wordmark">
-          <span className="dot" aria-hidden />
-          Puzzles
-        </Link>
+        <div className="topbar-left">
+          <BackButton href="/puzzles" label="Puzzles" />
+          <Link href="/" className="wordmark">
+            <span className="dot" aria-hidden />
+            PlayGoLite
+          </Link>
+        </div>
         <ThemeToggle />
       </div>
 

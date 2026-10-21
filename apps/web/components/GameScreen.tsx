@@ -18,6 +18,7 @@ import {
 } from "@playgolite/engine";
 import type { Level } from "@playgolite/ai";
 import { computeDead, computeMove } from "../lib/aiClient";
+import { BackButton } from "./BackButton";
 import { Board } from "./Board";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -101,10 +102,9 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
           }
           setHistory([replaySGF(sgf)]);
         }
-      } else {
-        // Starting a new game replaces whatever was saved before.
-        localStorage.removeItem(SAVE_KEY);
       }
+      // A new game only replaces the saved one when its first move is made, so opening this
+      // page again (for example with the browser Back button) never wipes a saved game.
     } catch {
       /* a corrupt save just starts a fresh game */
     }
@@ -284,13 +284,52 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
   const turnLabel = state.toPlay === 1 ? "Black" : "White";
   const lastWasPass = state.moves[state.moves.length - 1]?.move.kind === "pass";
 
+  // A game is "in progress" once a move has been made and it is not over. It is saved on this
+  // device after every move, so leaving does not lose it, but starting another game replaces it.
+  const inProgress = state.moves.length > 0 && state.status !== "finished";
+  const leaveWarning = inProgress
+    ? "Leave this game? It is saved on this device, so you can continue it from the home screen. Starting a new game there will replace it."
+    : null;
+  const warnRef = useRef<string | null>(null);
+  warnRef.current = leaveWarning;
+
+  // Guard the browser or phone Back gesture and closing the tab while a game is in progress.
+  useEffect(() => {
+    let active = true;
+    window.history.pushState({ playgolite: "guard" }, "", window.location.href);
+    const onPop = () => {
+      if (!active) return;
+      const msg = warnRef.current;
+      if (msg && !window.confirm(msg)) {
+        // Stay: put the guard entry back.
+        window.history.pushState({ playgolite: "guard" }, "", window.location.href);
+        return;
+      }
+      active = false;
+      window.history.back();
+    };
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if (warnRef.current) e.preventDefault();
+    };
+    window.addEventListener("popstate", onPop);
+    window.addEventListener("beforeunload", onUnload);
+    return () => {
+      active = false;
+      window.removeEventListener("popstate", onPop);
+      window.removeEventListener("beforeunload", onUnload);
+    };
+  }, []);
+
   return (
     <main className="shell">
       <div className="topbar">
-        <Link href="/" className="wordmark">
-          <span className="dot" aria-hidden />
-          PlayGoLite
-        </Link>
+        <div className="topbar-left">
+          <BackButton href="/" label="Home" warn={leaveWarning} />
+          <span className="wordmark">
+            <span className="dot" aria-hidden />
+            PlayGoLite
+          </span>
+        </div>
         <ThemeToggle />
       </div>
 
@@ -348,7 +387,14 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
             <button className="btn danger grow" onClick={doResign}>
               Resign
             </button>
-            <Link href="/" className="btn grow" style={{ textAlign: "center" }}>
+            <Link
+              href="/"
+              className="btn grow"
+              style={{ textAlign: "center" }}
+              onClick={(e) => {
+                if (leaveWarning && !window.confirm(leaveWarning)) e.preventDefault();
+              }}
+            >
               Menu
             </Link>
           </div>

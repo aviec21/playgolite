@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LESSONS } from "@playgolite/learn";
+import { BackButton } from "../../components/BackButton";
 import { ThemeToggle } from "../../components/ThemeToggle";
 import { LESSONS_KEY, useProgress } from "../../lib/progress";
 
@@ -10,10 +11,13 @@ export default function LearnPage() {
   return (
     <main className="shell">
       <div className="topbar">
-        <Link href="/" className="wordmark">
-          <span className="dot" aria-hidden />
-          PlayGoLite
-        </Link>
+        <div className="topbar-left">
+          <BackButton href="/" label="Home" />
+          <Link href="/" className="wordmark">
+            <span className="dot" aria-hidden />
+            PlayGoLite
+          </Link>
+        </div>
         <ThemeToggle />
       </div>
       <div className="stack">

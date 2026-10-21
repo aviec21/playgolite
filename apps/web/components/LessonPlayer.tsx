@@ -10,6 +10,7 @@ import {
   lessonStepState,
   type Lesson,
 } from "@playgolite/learn";
+import { BackButton } from "./BackButton";
 import { Board } from "./Board";
 import { ThemeToggle } from "./ThemeToggle";
 import { LESSONS_KEY, useProgress } from "../lib/progress";
@@ -79,10 +80,17 @@ export function LessonPlayer({ lesson, nextId }: { lesson: Lesson; nextId: strin
   return (
     <main className="shell">
       <div className="topbar">
-        <Link href="/learn" className="wordmark">
-          <span className="dot" aria-hidden />
-          Learn
-        </Link>
+        <div className="topbar-left">
+          <BackButton
+            href="/learn"
+            label="Lessons"
+            warn={index > 0 && !finished ? "Leave this lesson? Your place in it is not saved until you finish." : null}
+          />
+          <Link href="/" className="wordmark">
+            <span className="dot" aria-hidden />
+            PlayGoLite
+          </Link>
+        </div>
         <ThemeToggle />
       </div>
 
