@@ -63,9 +63,20 @@ export default function Home() {
         )}
       </div>
 
+      <div className="row">
+        <Link href="/learn" className="card grow" style={{ flex: 1 }}>
+          <h2>Learn to play</h2>
+          <p>Ten short interactive lessons.</p>
+        </Link>
+        <Link href="/puzzles" className="card grow" style={{ flex: 1 }}>
+          <h2>Puzzles</h2>
+          <p>Capture, escape and connect.</p>
+        </Link>
+      </div>
+
       <div className="card stack">
         <h2>Coming next</h2>
-        <p>Learn to play, puzzles, play against the computer, and online games with a link.</p>
+        <p>Play against the computer, and online games with a link.</p>
       </div>
     </main>
   );

@@ -1,0 +1,266 @@
+import type { Lesson } from "./types";
+
+const EMPTY5 = [".....", ".....", ".....", ".....", "....."];
+
+export const LESSONS: Lesson[] = [
+  {
+    id: "placing-stones",
+    title: "Placing stones",
+    summary: "The board, the stones and taking turns.",
+    steps: [
+      {
+        title: "The board",
+        text: "Go is played on a grid. Stones go on the crossings of the lines, not inside the squares. Black always moves first, then players take turns. Tap any crossing to place a black stone.",
+        board: { rows: EMPTY5, toPlay: 1 },
+        task: { type: "play-any" },
+        success: "Nicely placed. Stones never move once they are on the board.",
+      },
+      {
+        title: "Taking turns",
+        text: "Now it is White's turn. Place a white stone anywhere you like.",
+        board: { rows: [".....", ".....", "..X..", ".....", "....."], toPlay: 2 },
+        task: { type: "play-any" },
+        success: "Good. Players alternate, and each turn you either place one stone or pass.",
+      },
+    ],
+  },
+  {
+    id: "liberties",
+    title: "Liberties",
+    summary: "How stones breathe.",
+    steps: [
+      {
+        title: "Open points next to a stone",
+        text: "The empty crossings directly next to a stone, up, down, left and right, are its liberties. The marked points are the four liberties of this stone. Diagonals do not count.",
+        board: { rows: [".....", ".....", "..X..", ".....", "....."], toPlay: 1, marks: [[2, 1], [1, 2], [3, 2], [2, 3]] },
+        task: { type: "info" },
+        success: "On to some counting.",
+      },
+      {
+        title: "On the edge",
+        text: "The edge of the board is a wall, so a stone there has fewer liberties.",
+        board: { rows: [".....", ".....", "X....", ".....", "....."], toPlay: 1 },
+        task: { type: "choice", question: "How many liberties does the black stone have?", options: ["2", "3", "4"], answer: 1, liberties: [0, 2] },
+        success: "Three: up, down and right. The left side is the edge.",
+      },
+      {
+        title: "In the corner",
+        text: "A stone in the corner is the most fragile.",
+        board: { rows: ["X....", ".....", ".....", ".....", "....."], toPlay: 1 },
+        task: { type: "choice", question: "How many liberties does the corner stone have?", options: ["1", "2", "3"], answer: 1, liberties: [0, 0] },
+        success: "Two. Corner stones are easy to capture, which matters later.",
+      },
+      {
+        title: "Connected stones",
+        text: "Stones that touch along a line form a group and share their liberties.",
+        board: { rows: [".....", ".....", ".XX..", ".....", "....."], toPlay: 1 },
+        task: { type: "choice", question: "How many liberties does this pair of stones have together?", options: ["4", "6", "8"], answer: 1, liberties: [1, 2] },
+        success: "Six. A group lives or dies together.",
+      },
+    ],
+  },
+  {
+    id: "capturing",
+    title: "Capturing",
+    summary: "Take the last liberty and the stones come off.",
+    steps: [
+      {
+        title: "Take the last liberty",
+        text: "When all of a stone's liberties are filled by your stones, you capture it and it comes off the board. The white stone has one liberty left. Take it.",
+        board: { rows: [".X...", "XO...", ".X...", ".....", "....."], toPlay: 1, marks: [[2, 1]] },
+        task: { type: "capture" },
+        hint: "Play on the one empty point touching the white stone.",
+        success: "Captured. The point is empty again, and you keep the stone as a prisoner.",
+      },
+      {
+        title: "In the corner",
+        text: "The corner needs only two stones. Capture the white stone.",
+        board: { rows: ["OX...", ".....", ".....", ".....", "....."], toPlay: 1 },
+        task: { type: "capture" },
+        hint: "Which crossing next to the white stone is still empty?",
+        success: "Two stones were enough.",
+      },
+      {
+        title: "Capturing a group",
+        text: "A whole group is captured at once when its last shared liberty is filled.",
+        board: { rows: ["XOO..", ".XX..", ".....", ".....", "....."], toPlay: 1 },
+        task: { type: "capture" },
+        hint: "Look at the two white stones as one group. Where can they still breathe?",
+        success: "Both stones come off together.",
+      },
+    ],
+  },
+  {
+    id: "atari",
+    title: "Atari",
+    summary: "One liberty left: a warning, and a way out.",
+    steps: [
+      {
+        title: "Putting a stone in atari",
+        text: "A group with exactly one liberty is in atari. It will be captured next turn unless it escapes. This white stone has two liberties. Play so it is left with exactly one.",
+        board: { rows: [".X...", "XO...", ".....", ".....", "....."], toPlay: 1 },
+        task: { type: "atari" },
+        hint: "Take either of the two liberties next to the white stone.",
+        success: "That is atari. White must react now or lose the stone.",
+      },
+      {
+        title: "Escaping",
+        text: "You are White and your stone is in atari. Extend to give it more liberties.",
+        board: { rows: [".X...", "XOX..", ".....", ".....", "....."], toPlay: 2, marks: [[1, 2]] },
+        task: { type: "play-at", points: [[1, 2]] },
+        hint: "Your stone has one liberty. Play on it.",
+        success: "Now the group has three liberties and is out of immediate danger.",
+      },
+    ],
+  },
+  {
+    id: "no-suicide",
+    title: "The suicide rule",
+    summary: "You cannot play where your own stones would have no liberties.",
+    steps: [
+      {
+        title: "Not allowed",
+        text: "You may not place a stone that leaves it, or its group, with no liberties. Try playing a black stone on the marked corner.",
+        board: { rows: [".O...", "O....", ".....", ".....", "....."], toPlay: 1, marks: [[0, 0]] },
+        task: { type: "illegal", points: [[0, 0]], reason: "suicide" },
+        hint: "Tap the marked point in the corner.",
+        success: "Refused: the stone would have no liberties.",
+      },
+      {
+        title: "Unless it captures",
+        text: "There is an exception. A move that takes the last liberty of enemy stones is fine, because the capture gives your stone room. Capture the white stone on the marked point.",
+        board: { rows: [".XO..", "XO.O.", ".XO..", ".....", "....."], toPlay: 1, marks: [[2, 1]] },
+        task: { type: "play-at", points: [[2, 1]] },
+        hint: "Play on the marked point.",
+        success: "Allowed, because the white stone was captured first.",
+      },
+    ],
+  },
+  {
+    id: "ko",
+    title: "Ko",
+    summary: "Why you cannot retake straight away.",
+    steps: [
+      {
+        title: "A capture that can be retaken",
+        text: "Here Black can capture the white stone by playing on the marked point.",
+        board: { rows: [".XO..", "XO.O.", ".XO..", ".....", "....."], toPlay: 1, marks: [[2, 1]] },
+        task: { type: "play-at", points: [[2, 1]] },
+        hint: "Play on the marked point.",
+        success: "Captured. But look: your new stone has only one liberty.",
+      },
+      {
+        title: "No instant retake",
+        text: "White would love to capture right back, but that would repeat the earlier position and the game could go on forever. The ko rule forbids it. Try to retake on the marked point.",
+        board: { rows: [".XO..", "XO.O.", ".XO..", ".....", "....."], toPlay: 1, preMoves: [[2, 1]], marks: [[1, 1]] },
+        task: { type: "illegal", points: [[1, 1]], reason: "ko" },
+        hint: "Tap the marked point where the white stone used to be.",
+        success: "Refused: that would repeat the board position.",
+      },
+      {
+        title: "Play elsewhere first",
+        text: "White must play somewhere else first, a move Black has to answer. That is called a ko threat. Play any stone elsewhere.",
+        board: { rows: [".XO..", "XO.O.", ".XO..", ".....", "....."], toPlay: 1, preMoves: [[2, 1]] },
+        task: { type: "play-any" },
+        success: "After the board has changed, White is allowed to retake. Ko fights are all about who has more threats.",
+      },
+    ],
+  },
+  {
+    id: "eyes",
+    title: "Eyes and living",
+    summary: "Why two eyes cannot be captured.",
+    steps: [
+      {
+        title: "Two eyes",
+        text: "This white group has two separate empty points inside it, called eyes. Black has surrounded it. Try playing in one of the eyes.",
+        board: { rows: ["O.O.O", "OOOOO", "XXXXX", ".....", "....."], toPlay: 1, marks: [[1, 0], [3, 0]] },
+        task: { type: "illegal", points: [[1, 0], [3, 0]], reason: "suicide" },
+        hint: "Tap one of the two marked points.",
+        success: "Refused. Black can never fill both eyes, because filling one is suicide while the other remains. So this group lives.",
+      },
+      {
+        title: "One eye",
+        text: "Now the group has only one eye. Play inside it.",
+        board: { rows: ["O.OOO", "OOOOO", "XXXXX", ".....", "....."], toPlay: 1, marks: [[1, 0]] },
+        task: { type: "capture" },
+        hint: "Tap the single empty point inside the white group.",
+        success: "The eye was the group's last liberty, so the whole group is captured. Two eyes live, one eye dies.",
+      },
+    ],
+  },
+  {
+    id: "territory",
+    title: "Territory",
+    summary: "The empty points you surround.",
+    steps: [
+      {
+        title: "What is territory",
+        text: "The goal of Go is to surround more of the board than your opponent. Empty points that only one color surrounds are that color's territory. Here, Black's wall encloses the left side and White's wall encloses the right.",
+        board: { rows: ["..XO.", "..XO.", "..XO.", "..XO.", "..XO."], toPlay: 1 },
+        task: { type: "count", question: "How many empty points are Black's territory?", measure: "blackTerritory" },
+        success: "Ten empty points on the left.",
+      },
+      {
+        title: "White's side",
+        text: "Same board. Count White's side.",
+        board: { rows: ["..XO.", "..XO.", "..XO.", "..XO.", "..XO."], toPlay: 1 },
+        task: { type: "count", question: "How many empty points are White's territory?", measure: "whiteTerritory" },
+        success: "Five on the right.",
+      },
+    ],
+  },
+  {
+    id: "scoring",
+    title: "Scoring",
+    summary: "Area scoring: stones plus territory, and komi.",
+    steps: [
+      {
+        title: "Area scoring",
+        text: "PlayGoLite uses area scoring. A player's score is their stones on the board plus the empty points they surround.",
+        board: { rows: ["..XO.", "..XO.", "..XO.", "..XO.", "..XO."], toPlay: 1 },
+        task: { type: "count", question: "What is Black's area score? (stones plus territory)", measure: "blackArea" },
+        success: "Fifteen: five stones plus ten points of territory.",
+      },
+      {
+        title: "White's area",
+        text: "Now White's.",
+        board: { rows: ["..XO.", "..XO.", "..XO.", "..XO.", "..XO."], toPlay: 1 },
+        task: { type: "count", question: "What is White's area score, before komi?", measure: "whiteArea" },
+        success: "Ten: five stones plus five points of territory.",
+      },
+      {
+        title: "Komi",
+        text: "Black moves first, which is an advantage. To make up for it, White receives bonus points called komi: 7 on a 9x9 board and 7.5 on 13x13 and 19x19. The half point means there are no draws.",
+        task: { type: "choice", question: "Why does White get komi?", options: ["Because White is the weaker player", "To balance Black having the first move", "As a prize for capturing more stones"], answer: 1 },
+        success: "Right. Black's tempo is worth about that many points.",
+      },
+    ],
+  },
+  {
+    id: "ending",
+    title: "Ending the game",
+    summary: "Passing and removing dead stones.",
+    steps: [
+      {
+        title: "Passing",
+        text: "When you think there is nothing useful left to play, you pass. If both players pass in a row, the game moves to scoring.",
+        task: { type: "choice", question: "When does the game move to scoring in PlayGoLite?", options: ["When the board is full", "When both players pass one after the other", "After 100 moves"], answer: 1 },
+        success: "Correct.",
+      },
+      {
+        title: "Dead stones",
+        text: "At the end some stones are surrounded and could not escape even if play continued. They are dead, and they are removed before counting. Here a single white stone sits deep inside Black's area.",
+        board: { rows: ["XXXXX", "XXXXX", "XX.OX", "XXXXX", "XXXXX"], toPlay: 1, marks: [[3, 2]] },
+        task: { type: "choice", question: "Is the white stone alive or dead?", options: ["Alive, it was never captured", "Dead, it cannot make two eyes"], answer: 1 },
+        success: "Dead. At scoring time you tap such stones to remove them, and your opponent agrees or you keep playing.",
+      },
+      {
+        title: "You are ready",
+        text: "That is the whole game: place stones, take liberties, avoid suicide and ko, make eyes, claim territory, then pass and score. Try the puzzles to sharpen your reading, or start a game.",
+        task: { type: "info" },
+        success: "Have fun!",
+      },
+    ],
+  },
+];

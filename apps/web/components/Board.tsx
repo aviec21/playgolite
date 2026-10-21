@@ -16,9 +16,13 @@ interface BoardProps {
   territory: readonly Cell[] | null;
   showCoordinates: boolean;
   onPoint: (x: number, y: number) => void;
+  /** Zoom to a region [x0, y0, x1, y1] (inclusive) instead of showing the whole board. */
+  crop?: readonly [number, number, number, number];
+  /** Empty points to highlight with a soft dot. */
+  marks?: ReadonlyArray<readonly [number, number]>;
 }
 
-export function Board({ state, pending, koPoint, territory, showCoordinates, onPoint }: BoardProps) {
+export function Board({ state, pending, koPoint, territory, showCoordinates, onPoint, crop, marks }: BoardProps) {
   const size = state.size;
   const span = (size - 1) * CELL;
   const total = span + MARGIN * 2;
@@ -116,10 +120,22 @@ export function Board({ state, pending, koPoint, territory, showCoordinates, onP
     }
   }
 
+  let vbX = 0;
+  let vbY = 0;
+  let vbW = total;
+  let vbH = total;
+  if (crop) {
+    const pad = CELL * 0.75;
+    vbX = px(crop[0]) - pad;
+    vbY = px(crop[1]) - pad;
+    vbW = (crop[2] - crop[0]) * CELL + pad * 2;
+    vbH = (crop[3] - crop[1]) * CELL + pad * 2;
+  }
+
   return (
-    <div className="board-wrap">
+    <div className="board-wrap" style={crop ? { aspectRatio: `${vbW} / ${vbH}` } : undefined}>
       <svg
-        viewBox={`0 0 ${total} ${total}`}
+        viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
         role="img"
         aria-label={`Go board ${size} by ${size}`}
       >
@@ -151,6 +167,9 @@ export function Board({ state, pending, koPoint, territory, showCoordinates, onP
             ))}
           </g>
         )}
+        {marks?.map(([mx, my]) => (
+          <circle key={`m${mx}-${my}`} cx={px(mx)} cy={px(my)} r={CELL * 0.17} fill="var(--accent)" opacity={0.75} />
+        ))}
         {stones}
         {territoryMarks}
         {lastPlay && !dead.has(lastPlay.y * size + lastPlay.x) && (
