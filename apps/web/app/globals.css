@@ -582,3 +582,49 @@ p {
     align-items: start;
   }
 }
+
+.gamerow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gamelink {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 4px;
+}
+
+.gamelink small {
+  color: var(--muted);
+}
+
+.mvbtn {
+  appearance: none;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--text);
+  text-align: left;
+  padding: 2px 4px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mvbtn:hover {
+  background: var(--bg);
+}
+
+.mvbtn.last {
+  color: var(--accent);
+  font-weight: 700;
+  background: var(--bg);
+}
+
+.segment:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

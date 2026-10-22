@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { InstallPrompt } from "../components/InstallPrompt";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { useNetworkStatus } from "../lib/nnClient";
 import { MODEL_SIZE_LABEL } from "../lib/nnConfig";
@@ -19,6 +20,7 @@ const SIZES = [
   { size: 9, note: "Quick, about 10 min" },
   { size: 13, note: "Medium" },
   { size: 19, note: "Full board" },
+  { size: 21, note: "Huge. Master not available" },
 ];
 
 const HERO_BLACK: Array<[number, number]> = [[2, 2], [2, 3], [3, 5], [4, 4], [6, 6], [6, 2], [5, 6]];
@@ -77,6 +79,7 @@ export default function Home() {
         <nav className="topnav" aria-label="Main">
           <Link href="/learn">Learn</Link>
           <Link href="/puzzles">Puzzles</Link>
+          <Link href="/games">Games</Link>
         </nav>
         <ThemeToggle />
       </div>
@@ -104,7 +107,14 @@ export default function Home() {
           <>
             <div className="segments" role="group" aria-label="Level">
               {LEVELS.map((l) => (
-                <button key={l.id} className="segment" aria-pressed={level === l.id} onClick={() => setLevel(l.id)}>
+                <button
+                  key={l.id}
+                  className="segment"
+                  aria-pressed={level === l.id}
+                  disabled={l.id === "master" && size > 19}
+                  title={l.id === "master" && size > 19 ? "Master plays boards up to 19 x 19" : undefined}
+                  onClick={() => setLevel(l.id)}
+                >
                   {l.label}
                 </button>
               ))}
@@ -126,13 +136,16 @@ export default function Home() {
           </>
         )}
         <p>Pick a board size.</p>
-        <div className="segments" role="group" aria-label="Board size">
+        <div className="segments" role="group" aria-label="Board size" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
           {SIZES.map((s) => (
             <button
               key={s.size}
               className="segment"
               aria-pressed={size === s.size}
-              onClick={() => setSize(s.size)}
+              onClick={() => {
+                setSize(s.size);
+                if (s.size > 19 && level === "master") setLevel("expert");
+              }}
             >
               {s.size} x {s.size}
               <small>{s.note}</small>
@@ -200,7 +213,13 @@ export default function Home() {
           <h2>Puzzles</h2>
           <p>Capture, escape and connect.</p>
         </Link>
+        <Link href="/games" className="card grow" style={{ flex: 1 }}>
+          <h2>Games</h2>
+          <p>Review finished games. Import or save SGF files.</p>
+        </Link>
       </div>
+
+      <InstallPrompt />
 
       <div className="card stack">
         <h2>Coming next</h2>

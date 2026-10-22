@@ -18,6 +18,8 @@ import {
 } from "@playgolite/engine";
 import type { Level } from "@playgolite/ai";
 import { computeDead, computeMove } from "../lib/aiClient";
+import { addGame } from "../lib/gameStore";
+import { copyText, downloadText, sgfFilename, todayStamp } from "../lib/sgfFile";
 import { COLUMN_LETTERS } from "../lib/geometry";
 import { BackButton } from "./BackButton";
 import { Board } from "./Board";
@@ -75,6 +77,9 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
   const [confirmMoves, setConfirmMoves] = useState(true);
   const [coords, setCoords] = useState(false);
   const loaded = useRef(false);
+  const archived = useRef(false);
+  const [archivedId, setArchivedId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const state = history[history.length - 1] as GameState;
 
@@ -120,13 +125,35 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
     }
   }, [confirmMoves, coords]);
 
-  // Save the game after every change. A finished game is cleared from the slot.
+  const playerNames = () => {
+    if (!aiCfg) return { black: "Black", white: "White" };
+    const cpu = `Computer (${LEVEL_NAMES[aiCfg.level]})`;
+    return aiCfg.human === 1 ? { black: "You", white: cpu } : { black: cpu, white: "You" };
+  };
+
+  // Save the game after every change. A finished game is cleared from the slot and kept in Games.
   useEffect(() => {
     if (!loaded.current) return;
     try {
       if (state.moves.length === 0) return;
       if (state.status === "finished") {
         localStorage.removeItem(SAVE_KEY);
+        if (!archived.current) {
+          archived.current = true;
+          const names = playerNames();
+          const sgf = toSGF(state, { black: names.black, white: names.white, date: todayStamp() });
+          const re = /RE\[([^\]]*)\]/.exec(sgf)?.[1] ?? "";
+          const g = addGame({
+            sgf,
+            black: names.black,
+            white: names.white,
+            result: re,
+            size: state.size,
+            moves: state.moves.length,
+            source: "played",
+          });
+          setArchivedId(g.id);
+        }
       } else {
         localStorage.setItem(SAVE_KEY, JSON.stringify({ sgf: toSGF(state), ai: aiCfg }));
       }
@@ -239,6 +266,8 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
     }
     aiToken.current++;
     scoredFor.current = -1;
+    archived.current = false;
+    setArchivedId(null);
     setHistory([createGame({ size })]);
     setPending(null);
     setMessage(null);
@@ -465,6 +494,11 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
               Menu
             </Link>
           </div>
+          {archivedId && (
+            <Link href={`/review?id=${archivedId}`} className="btn" style={{ textAlign: "center" }}>
+              Review this game
+            </Link>
+          )}
         </div>
       )}
 
@@ -480,6 +514,31 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="row" style={{ justifyContent: "center" }}>
+        <button
+          className="btn"
+          disabled={state.moves.length === 0}
+          onClick={() => {
+            const n = playerNames();
+            downloadText(sgfFilename(state.size), toSGF(state, { black: n.black, white: n.white, date: todayStamp() }));
+          }}
+        >
+          Download SGF
+        </button>
+        <button
+          className="btn"
+          disabled={state.moves.length === 0}
+          onClick={async () => {
+            const n = playerNames();
+            const ok = await copyText(toSGF(state, { black: n.black, white: n.white, date: todayStamp() }));
+            setCopied(ok);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+        >
+          {copied ? "Copied" : "Copy SGF"}
+        </button>
       </div>
 
       <div className="row" style={{ justifyContent: "center", gap: 20 }}>

@@ -12,7 +12,7 @@ import {
   type PlayResult,
 } from "./types";
 
-export const DEFAULT_KOMI: Record<number, number> = { 9: 7, 13: 7.5, 19: 7.5 };
+export const DEFAULT_KOMI: Record<number, number> = { 9: 7, 13: 7.5, 19: 7.5, 21: 7.5 };
 
 export interface NewGameOptions {
   size?: number;

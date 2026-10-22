@@ -19,5 +19,5 @@ export {
   timeout,
 } from "./game";
 export { score } from "./score";
-export { toSGF, parseSGF, replaySGF } from "./sgf";
-export type { ParsedSGF } from "./sgf";
+export { toSGF, parseSGF, replaySGF, replaySGFStates } from "./sgf";
+export type { ParsedSGF, SGFInfo } from "./sgf";

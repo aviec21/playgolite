@@ -13,6 +13,7 @@ import {
   play,
   playOrThrow,
   replaySGF,
+  replaySGFStates,
   resumePlay,
   score,
   timeout,
@@ -277,5 +278,30 @@ describe("SGF", () => {
 
   it("reports an illegal move in an SGF", () => {
     expect(() => replaySGF("(;SZ[9];B[aa];W[bb];B[aa])")).toThrow(/illegal/);
+  });
+
+  it("keeps only the main line and reads handicap stones", () => {
+    const sgf = "(;GM[1]SZ[9]HA[2]AB[cc][gg]PL[W]PB[A]PW[B]RE[W+R];W[ee](;B[dd];W[de])(;B[ff];W[fe]))";
+    const { states, parsed } = replaySGFStates(sgf);
+    expect(parsed.setup.black).toEqual([[2, 2], [6, 6]]);
+    expect(parsed.moves.length).toBe(3);
+    expect(parsed.info).toEqual({ black: "A", white: "B", result: "W+R" });
+    expect(states.length).toBe(4);
+    expect(states[0]!.board.filter((c) => c === 1).length).toBe(2);
+    expect(states[3]!.board[4 * 9 + 3]).toBe(2);
+  });
+
+  it("round trips on a 21 x 21 board", () => {
+    let s = createGame({ size: 21 });
+    expect(s.komi).toBe(7.5);
+    for (const [x, y] of [[20, 20], [0, 0], [19, 20]] as const) {
+      const r = play(s, { kind: "play", x, y });
+      if (!r.ok) throw new Error("illegal");
+      s = r.state;
+    }
+    const sgf = toSGF(s);
+    expect(sgf).toContain("SZ[21]");
+    expect(sgf).toContain(";B[uu];W[aa];B[tu]");
+    expect(replaySGF(sgf).board).toEqual(s.board);
   });
 });
