@@ -26,6 +26,7 @@ export default function PuzzlesPage() {
           Find the move. Every answer is checked by the game engine. {done.size} of {PUZZLES.length} solved.
         </p>
       </div>
+      <div className="puzzle-grid">
       {PUZZLE_CATEGORIES.map((cat) => {
         const list = PUZZLES.filter((p) => p.category === cat);
         if (list.length === 0) return null;
@@ -48,6 +49,7 @@ export default function PuzzlesPage() {
           </div>
         );
       })}
+      </div>
     </main>
   );
 }

@@ -112,7 +112,8 @@ export function PuzzlePlayer({ puzzle, nextId }: { puzzle: Puzzle; nextId: strin
         <ThemeToggle />
       </div>
 
-      <div className="stack">
+      <div className="split">
+      <div className="s-head stack">
         <small style={{ color: "var(--muted)" }}>
           {puzzle.category} &middot; level {puzzle.difficulty}
         </small>
@@ -123,6 +124,7 @@ export function PuzzlePlayer({ puzzle, nextId }: { puzzle: Puzzle; nextId: strin
         </p>
       </div>
 
+      <div className="s-board">
       <Board
         state={state}
         pending={null}
@@ -133,6 +135,9 @@ export function PuzzlePlayer({ puzzle, nextId }: { puzzle: Puzzle; nextId: strin
         crop={crop}
         marks={phase === "playing" ? goalMark : undefined}
       />
+      </div>
+
+      <div className="s-rest">
 
       <div className={`message ${message?.warn ? "warn" : ""}`} aria-live="polite">
         {phase === "solved" ? "Correct!" : (message?.text ?? (busy ? "Thinking..." : "Tap the board to play."))}
@@ -177,6 +182,8 @@ export function PuzzlePlayer({ puzzle, nextId }: { puzzle: Puzzle; nextId: strin
           </div>
         </div>
       )}
+      </div>
+      </div>
     </main>
   );
 }

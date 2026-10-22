@@ -94,7 +94,8 @@ export function LessonPlayer({ lesson, nextId }: { lesson: Lesson; nextId: strin
         <ThemeToggle />
       </div>
 
-      <div className="stack">
+      <div className="split">
+      <div className="s-head stack">
         <small style={{ color: "var(--muted)" }}>
           {lesson.title} &middot; step {index + 1} of {lesson.steps.length}
         </small>
@@ -102,6 +103,7 @@ export function LessonPlayer({ lesson, nextId }: { lesson: Lesson; nextId: strin
         <p>{step.text}</p>
       </div>
 
+      <div className="s-board">
       {state && step.board && (
         <Board
           state={state}
@@ -114,6 +116,9 @@ export function LessonPlayer({ lesson, nextId }: { lesson: Lesson; nextId: strin
           {...(step.board.marks && !solved ? { marks: step.board.marks } : {})}
         />
       )}
+      </div>
+
+      <div className="s-rest">
 
       {options && question && !solved && (
         <div className="card stack">
@@ -157,6 +162,8 @@ export function LessonPlayer({ lesson, nextId }: { lesson: Lesson; nextId: strin
           </button>
         </div>
       )}
+      </div>
+      </div>
     </main>
   );
 }

@@ -18,6 +18,7 @@ import {
 } from "@playgolite/engine";
 import type { Level } from "@playgolite/ai";
 import { computeDead, computeMove } from "../lib/aiClient";
+import { COLUMN_LETTERS } from "../lib/geometry";
 import { BackButton } from "./BackButton";
 import { Board } from "./Board";
 import { ThemeToggle } from "./ThemeToggle";
@@ -282,6 +283,23 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
     [state],
   );
 
+  const moveRows = useMemo(() => {
+    const label = (i: number) => {
+      const m = state.moves[i]?.move;
+      if (!m) return "";
+      if (m.kind === "play") return `${COLUMN_LETTERS[m.x]}${state.size - m.y}`;
+      return m.kind === "pass" ? "Pass" : "Resign";
+    };
+    const rows: Array<{ n: number; a: string; b: string }> = [];
+    for (let i = 0; i < state.moves.length; i += 2) rows.push({ n: i / 2 + 1, a: label(i), b: label(i + 1) });
+    return rows;
+  }, [state]);
+  const moveListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = moveListRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [moveRows.length]);
+
   const turnLabel = state.toPlay === 1 ? "Black" : "White";
   const lastWasPass = state.moves[state.moves.length - 1]?.move.kind === "pass";
 
@@ -334,6 +352,8 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
         <ThemeToggle />
       </div>
 
+      <div className="game-layout">
+      <div className="game-main">
       <div className="statusbar">
         <div className={`player ${state.toPlay === 1 && state.status === "playing" ? "active" : ""}`}>
           <span className="stone black" />
@@ -353,9 +373,11 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
         showCoordinates={coords}
         onPoint={onPoint}
       />
+      </div>
 
+      <div className="game-side">
       {state.status === "playing" && (
-        <>
+        <div className="panel">
           <div className={`message ${message?.warn ? "warn" : ""}`} aria-live="polite">
             {aiTurn
               ? `Computer (${LEVEL_NAMES[aiCfg?.level ?? "easy"]}) is thinking...`
@@ -399,7 +421,7 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
               Menu
             </Link>
           </div>
-        </>
+        </div>
       )}
 
       {state.status === "scoring" && scoreNow && (
@@ -446,6 +468,20 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
         </div>
       )}
 
+      <div className="panel desktop-only">
+        <h2>Moves</h2>
+        <div className="movelist" ref={moveListRef}>
+          {moveRows.length === 0 && <p>No moves yet.</p>}
+          {moveRows.map((r, i) => (
+            <div className="mv" key={r.n}>
+              <span>{r.n}</span>
+              <span className={i === moveRows.length - 1 && !r.b ? "last" : ""}>{r.a}</span>
+              <span className={i === moveRows.length - 1 && r.b ? "last" : ""}>{r.b}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="row" style={{ justifyContent: "center", gap: 20 }}>
         <label className="toggle">
           <input type="checkbox" checked={confirmMoves} onChange={(e) => setConfirmMoves(e.target.checked)} />
@@ -455,6 +491,8 @@ export function GameScreen({ size, resume, ai }: { size: number; resume: boolean
           <input type="checkbox" checked={coords} onChange={(e) => setCoords(e.target.checked)} />
           Coordinates
         </label>
+      </div>
+      </div>
       </div>
     </main>
   );

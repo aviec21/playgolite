@@ -12,45 +12,55 @@
   --accent: #2f7f79;
   --accent-text: #ffffff;
   --danger: #b4443a;
+  --mark: #2f7f79;
+  --mark-dot: #2f7f79;
   --radius: 14px;
 }
 
 :root[data-theme="dark"] {
   --bg: #15171a;
-  --surface: #1e2125;
-  --text: #ecebe6;
-  --muted: #9a978d;
-  --line: #2c3035;
-  --board: #4a4234;
-  --grid: #8d8368;
+  --surface: #262b31;
+  --text: #f1efe9;
+  --muted: #b3b0a6;
+  --line: #3d444c;
+  --board: #8a7650;
+  --grid: #2b2418;
   --stone-black: #0d0d0d;
   --stone-white: #eeeae0;
-  --stone-white-edge: #8d8878;
+  --stone-white-edge: #5c5546;
   --accent: #5bb6ae;
   --accent-text: #0f1a19;
   --danger: #e0786c;
+  --mark: #d2452f;
+  --mark-dot: #1a1408;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #15171a;
-    --surface: #1e2125;
-    --text: #ecebe6;
-    --muted: #9a978d;
-    --line: #2c3035;
-    --board: #4a4234;
-    --grid: #8d8368;
+    --surface: #262b31;
+    --text: #f1efe9;
+    --muted: #b3b0a6;
+    --line: #3d444c;
+    --board: #8a7650;
+    --grid: #2b2418;
     --stone-black: #0d0d0d;
     --stone-white: #eeeae0;
-    --stone-white-edge: #8d8878;
+    --stone-white-edge: #5c5546;
     --accent: #5bb6ae;
     --accent-text: #0f1a19;
     --danger: #e0786c;
+    --mark: #d2452f;
+    --mark-dot: #1a1408;
   }
 }
 
 * {
   box-sizing: border-box;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent);
 }
 
 html,
@@ -190,6 +200,9 @@ p {
 }
 
 .segment {
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 12px;
@@ -344,4 +357,228 @@ p {
   color: var(--accent);
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* ---------- Layout wrappers. On phones they are plain stacks, so nothing changes there. ---------- */
+.game-layout,
+.game-main,
+.game-side,
+.panel,
+.home-grid,
+.home-col,
+.split,
+.s-head,
+.s-rest {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.ng-cols,
+.ng-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.s-board {
+  min-width: 0;
+}
+
+.desktop-only {
+  display: none;
+}
+
+.movelist {
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.mv {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr;
+  gap: 8px;
+  padding: 6px 4px;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.mv span:first-child {
+  color: var(--muted);
+}
+
+.mv .last {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.topnav {
+  display: none;
+}
+
+/* ---------- Laptop and desktop (900px and wider) ---------- */
+@media (min-width: 900px) {
+  .desktop-only {
+    display: block;
+  }
+
+  .shell {
+    max-width: 1240px;
+    padding: 20px 40px 48px;
+    gap: 20px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .topnav {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    margin-right: 12px;
+  }
+
+  .topnav a {
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .topnav a:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  .btn,
+  .segment {
+    transition: border-color 0.12s;
+  }
+
+  .segment:hover {
+    border-color: var(--muted);
+  }
+
+  .card,
+  .panel {
+    border-radius: 16px;
+  }
+
+  /* Home */
+  .home-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: start;
+    margin-top: 16px;
+  }
+
+  .home-grid h1 {
+    font-size: 3.4rem;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+
+  .home-grid .lede {
+    font-size: 1.1rem;
+    max-width: 520px;
+  }
+
+  .ng-col .segments[aria-label="Opponent"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ng-cols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    align-items: start;
+  }
+
+  .hero-board {
+    display: block;
+    max-width: 520px;
+  }
+
+  .home-col .tiles {
+    max-width: 520px;
+  }
+
+  /* Game */
+  .game-layout {
+    display: grid;
+    grid-template-columns: minmax(0, calc(100dvh - 190px)) minmax(300px, 380px);
+    justify-content: center;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .game-side .panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 18px;
+  }
+
+  .game-side .panel .message {
+    text-align: left;
+    font-size: 1.05rem;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .game-side .panel .message.warn {
+    color: var(--danger);
+  }
+
+  /* Lessons and puzzles */
+  .split {
+    display: grid;
+    grid-template-columns: minmax(300px, 420px) minmax(0, calc(100dvh - 190px));
+    grid-template-areas:
+      "head board"
+      "rest board";
+    justify-content: center;
+    column-gap: 48px;
+    row-gap: 20px;
+    align-items: start;
+    grid-template-rows: auto 1fr;
+  }
+
+  .s-head {
+    grid-area: head;
+  }
+
+  .s-board {
+    grid-area: board;
+  }
+
+  .s-rest {
+    grid-area: rest;
+  }
+
+  .s-head h1 {
+    font-size: 2.2rem;
+    line-height: 1.1;
+  }
+
+  .s-head p {
+    font-size: 1.05rem;
+  }
+
+  .lesson-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .puzzle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
 }

@@ -168,7 +168,7 @@ export function Board({ state, pending, koPoint, territory, showCoordinates, onP
           </g>
         )}
         {marks?.map(([mx, my]) => (
-          <circle key={`m${mx}-${my}`} cx={px(mx)} cy={px(my)} r={CELL * 0.17} fill="var(--accent)" opacity={0.75} />
+          <circle key={`m${mx}-${my}`} cx={px(mx)} cy={px(my)} r={CELL * 0.17} fill="var(--mark-dot)" opacity={0.75} />
         ))}
         {stones}
         {territoryMarks}
@@ -178,7 +178,7 @@ export function Board({ state, pending, koPoint, territory, showCoordinates, onP
             cy={px(lastPlay.y)}
             r={stoneR * 0.45}
             fill="none"
-            stroke="var(--accent)"
+            stroke="var(--mark)"
             strokeWidth={3}
           />
         )}

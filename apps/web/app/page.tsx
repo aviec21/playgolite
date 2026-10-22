@@ -21,6 +21,35 @@ const SIZES = [
   { size: 19, note: "Full board" },
 ];
 
+const HERO_BLACK: Array<[number, number]> = [[2, 2], [2, 3], [3, 5], [4, 4], [6, 6], [6, 2], [5, 6]];
+const HERO_WHITE: Array<[number, number]> = [[3, 2], [3, 3], [4, 3], [5, 5], [5, 4], [6, 5], [2, 6]];
+
+/** A decorative mid-game board for wide screens. Hidden on phones. */
+function HeroBoard() {
+  const px = (i: number) => 64 + i * 64;
+  const lines = Array.from({ length: 9 }, (_, i) => i);
+  return (
+    <div className="board-wrap hero-board desktop-only" aria-hidden>
+      <svg viewBox="0 0 640 640">
+        <g stroke="var(--grid)" strokeWidth={1.5}>
+          {lines.map((i) => (
+            <g key={i}>
+              <line x1={px(0)} y1={px(i)} x2={px(8)} y2={px(i)} />
+              <line x1={px(i)} y1={px(0)} x2={px(i)} y2={px(8)} />
+            </g>
+          ))}
+        </g>
+        {HERO_BLACK.map(([x, y]) => (
+          <circle key={`b${x}${y}`} cx={px(x)} cy={px(y)} r={29} fill="var(--stone-black)" />
+        ))}
+        {HERO_WHITE.map(([x, y]) => (
+          <circle key={`w${x}${y}`} cx={px(x)} cy={px(y)} r={29} fill="var(--stone-white)" stroke="var(--stone-white-edge)" strokeWidth={1.5} />
+        ))}
+      </svg>
+    </div>
+  );
+}
+
 export default function Home() {
   const [size, setSize] = useState(9);
   const [opponent, setOpponent] = useState<"ai" | "pvp">("ai");
@@ -45,16 +74,24 @@ export default function Home() {
           <span className="dot" aria-hidden />
           PlayGoLite
         </span>
+        <nav className="topnav" aria-label="Main">
+          <Link href="/learn">Learn</Link>
+          <Link href="/puzzles">Puzzles</Link>
+        </nav>
         <ThemeToggle />
       </div>
 
+      <div className="home-grid">
+      <div className="home-col">
       <div className="stack" style={{ marginTop: 8 }}>
         <h1>The game of Go, kept simple.</h1>
-        <p>Free, runs on any device, no sign-up needed to play.</p>
+        <p className="lede">Free, runs on any device, no sign-up needed to play.</p>
       </div>
 
       <div className="card stack">
         <h2>New game</h2>
+        <div className="ng-cols">
+        <div className="ng-col">
         <div className="segments" role="group" aria-label="Opponent">
           <button className="segment" aria-pressed={opponent === "ai"} onClick={() => setOpponent("ai")}>
             Computer
@@ -73,6 +110,12 @@ export default function Home() {
               ))}
             </div>
             <p>{LEVELS.find((l) => l.id === level)?.blurb}</p>
+          </>
+        )}
+        </div>
+        <div className="ng-col">
+        {opponent === "ai" && (
+          <>
             <div className="segments" role="group" aria-label="Your colour">
               {["black", "white", "random"].map((c) => (
                 <button key={c} className="segment" aria-pressed={color === c} onClick={() => setColor(c)}>
@@ -95,6 +138,8 @@ export default function Home() {
               <small>{s.note}</small>
             </button>
           ))}
+        </div>
+        </div>
         </div>
         {opponent === "ai" && level === "master" && (
           <div className="stack">
@@ -143,7 +188,10 @@ export default function Home() {
         )}
       </div>
 
-      <div className="row">
+      </div>
+      <div className="home-col">
+      <HeroBoard />
+      <div className="row tiles">
         <Link href="/learn" className="card grow" style={{ flex: 1 }}>
           <h2>Learn to play</h2>
           <p>Ten short interactive lessons.</p>
@@ -157,6 +205,8 @@ export default function Home() {
       <div className="card stack">
         <h2>Coming next</h2>
         <p>Online games with a link, accounts and rankings.</p>
+      </div>
+      </div>
       </div>
     </main>
   );

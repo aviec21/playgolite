@@ -26,7 +26,7 @@ export default function LearnPage() {
           Ten short lessons, each with something to do on a real board. {done.size} of {LESSONS.length} done.
         </p>
       </div>
-      <div className="stack">
+      <div className="stack lesson-grid">
         {LESSONS.map((l, i) => (
           <Link key={l.id} href={`/learn/${l.id}`} className="card" style={{ display: "block" }}>
             <h2>
