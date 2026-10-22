@@ -15,8 +15,10 @@ export type PuzzleCategory =
   | "Capture"
   | "Capture a group"
   | "Two moves to capture"
+  | "Three moves to capture"
   | "Escape"
-  | "Connect";
+  | "Connect"
+  | "Life and death";
 
 export interface Puzzle {
   id: string;
