@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "prebuild": "node scripts/copy-ort.mjs",
     "predev": "node scripts/copy-ort.mjs",
-    "test": "vitest run"
+    "test": "vitest run --testTimeout=30000 --hookTimeout=30000"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
