@@ -2,6 +2,8 @@
 const nextConfig = {
   transpilePackages: ["@playgolite/engine", "@playgolite/learn", "@playgolite/ai"],
   reactStrictMode: true,
+  // PGlite (the local test database) is only loaded when no real database is configured.
+  serverExternalPackages: ["@electric-sql/pglite"],
   async headers() {
     return [
       // Cross-origin isolation lets the neural network use several threads (SharedArrayBuffer).

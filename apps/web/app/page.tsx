@@ -80,6 +80,7 @@ export default function Home() {
           <Link href="/learn">Learn</Link>
           <Link href="/puzzles">Puzzles</Link>
           <Link href="/games">Games</Link>
+          <Link href="/online">Online</Link>
         </nav>
         <ThemeToggle />
       </div>
@@ -221,10 +222,10 @@ export default function Home() {
 
       <InstallPrompt />
 
-      <div className="card stack">
-        <h2>Coming next</h2>
-        <p>Online games with a link, accounts and rankings.</p>
-      </div>
+      <Link href="/online" className="card stack">
+        <h2>Play online</h2>
+        <p>Challenge a friend with a link. Free account, live or daily games.</p>
+      </Link>
       </div>
       </div>
     </main>

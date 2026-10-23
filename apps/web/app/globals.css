@@ -628,3 +628,65 @@ p {
   opacity: 0.4;
   cursor: default;
 }
+
+/* Accounts and online play */
+.field {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+.field input,
+.field select {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  min-width: 0;
+}
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.codes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  user-select: all;
+}
+.clock {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.clock.low {
+  color: var(--danger);
+}
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+.tabs .btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.banner {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  font-size: 0.95rem;
+}
+@media (max-width: 480px) {
+  .hide-narrow {
+    display: none;
+  }
+}

@@ -119,7 +119,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/models/") || url.pathname === "/sw.js" || url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith("/models/") || url.pathname === "/sw.js" || url.pathname.startsWith("/api/") || url.pathname.startsWith("/g/")) return;
 
   if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/ort/") || /\.(png|svg|ico|woff2?)$/.test(url.pathname)) {
     event.respondWith(cacheFirst(request));
